@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080d14;
+  --surface: #0d1520;
+  --surface2: #111c2d;
+  --accent: #ff6a00;
+  --accent-light: #ff8c3a;
+  --accent-glow: rgba(255,106,0,0.15);
+  --accent2: #f59e0b;
+  --green: #22c55e;
+  --muted: #4a6080;
+  --text: #d4e4f7;
+  --border: rgba(255,106,0,0.15);
+  --border2: rgba(245,158,11,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,106,0,0.02) 60px, rgba(255,106,0,0.02) 61px),
+    repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,106,0,0.02) 60px, rgba(255,106,0,0.02) 61px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── HOME ─── */
+#page-home {
+  position: relative; z-index: 1;
+  max-width: 700px; margin: 0 auto; padding: 36px 16px 80px;
+}
+.hero { text-align: center; margin-bottom: 40px; }
+.hero-badge {
+  display: inline-block;
+  background: var(--accent-glow); border: 1px solid var(--border);
+  color: var(--accent-light); font-family: 'Oswald', sans-serif;
+  font-size: 10px; letter-spacing: 3px; padding: 5px 14px;
+  border-radius: 2px; margin-bottom: 16px; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: 'Oswald', sans-serif; font-size: clamp(26px, 7vw, 52px);
+  font-weight: 700; line-height: 1.08; letter-spacing: -0.5px;
+  color: #fff; text-transform: uppercase;
+}
+.hero h1 span { color: var(--accent); }
+.hero p { margin-top: 12px; color: var(--muted); font-size: 14px; font-weight: 300; }
+
+.section-label {
+  font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 3px;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.countries-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 420px) { .countries-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 600px) { .countries-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.country-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 8px; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 8px; transition: all 0.18s ease; position: relative;
+  overflow: hidden; min-height: 90px; justify-content: center;
+}
+.country-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,106,0,0.08) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.18s;
+}
+.country-btn:active { transform: scale(0.96); border-color: rgba(255,106,0,0.5); }
+.country-btn:active::before { opacity: 1; }
+@media (hover: hover) {
+  .country-btn:hover { border-color: rgba(255,106,0,0.5); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .country-btn:hover::before { opacity: 1; }
+}
+.country-flag { font-size: 28px; line-height: 1; }
+.country-name {
+  font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.8px; text-transform: uppercase; color: var(--text);
+  text-align: center; line-height: 1.2;
+}
+
+/* ─── DETAIL ─── */
+#page-detail {
+  display: none; position: relative; z-index: 1;
+  max-width: 700px; margin: 0 auto; padding: 20px 16px 80px;
+  animation: fadeIn 0.25s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.back-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  font-family: 'Barlow', sans-serif; font-size: 13px; padding: 10px 16px;
+  border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center;
+  gap: 8px; margin-bottom: 24px; transition: all 0.18s; width: 100%; justify-content: center;
+}
+.back-btn:active { border-color: var(--accent); color: var(--accent); }
+@media (hover: hover) { .back-btn:hover { border-color: var(--accent); color: var(--accent); } }
+
+.detail-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.detail-flag { font-size: 48px; line-height: 1; }
+.detail-title h2 {
+  font-family: 'Oswald', sans-serif; font-size: clamp(24px, 6vw, 40px);
+  font-weight: 700; text-transform: uppercase; color: #fff; letter-spacing: -0.5px; line-height: 1;
+}
+.detail-title p {
+  color: var(--accent-light); font-size: 10px; letter-spacing: 2.5px;
+  text-transform: uppercase; margin-top: 5px; font-family: 'Oswald', sans-serif;
+}
+
+/* TABS */
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.tab-btn {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 6px; cursor: pointer; font-family: 'Oswald', sans-serif; font-size: 11px;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  transition: all 0.18s; text-align: center; line-height: 1.3;
+}
+.tab-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-light); }
+.tab-btn:active { opacity: 0.8; }
+
+/* PANEL */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+.panel-title {
+  font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--accent-light); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title::before { content: ''; width: 3px; height: 13px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
+.panel-title.gold { color: var(--accent2); }
+.panel-title.gold::before { background: var(--accent2); }
+.panel-title.green-c { color: var(--green); }
+.panel-title.green-c::before { background: var(--green); }
+
+/* COACHES */
+.coaches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.coach-chip {
+  background: rgba(245,158,11,0.07); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+}
+.coach-icon { font-size: 18px; flex-shrink: 0; }
+.coach-label { font-size: 11px; color: var(--accent2); font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+.coach-name { font-size: 13px; color: var(--text); margin-top: 1px; }
+
+/* PLAYERS */
+.players-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+@media (min-width: 420px) { .players-grid { grid-template-columns: repeat(3, 1fr); } }
+.player-chip {
+  background: var(--surface2); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 7px; padding: 10px 12px; font-size: 13px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.player-num { font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--muted); width: 16px; text-align: right; flex-shrink: 0; }
+
+/* TAB CONTENT */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* TIJDSCHEMA */
+.time-grid { display: flex; flex-direction: column; gap: 4px; }
+.time-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 7px; background: var(--surface2); border: 1px solid rgba(255,255,255,0.04);
+}
+.time-row.is-pause { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.15); }
+.time-badge { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; color: var(--accent-light); min-width: 110px; flex-shrink: 0; }
+.time-row.is-pause .time-badge { color: var(--accent2); }
+.time-label { font-size: 13px; color: var(--text); }
+.time-row.is-pause .time-label { color: rgba(245,158,11,0.8); font-weight: 500; }
+.time-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.time-row.is-pause .time-dot { background: var(--accent2); }
+
+/* MATCH ROWS */
+.match-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.match-row:last-child { border-bottom: none; }
+.match-num { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 600; color: rgba(255,106,0,0.25); width: 28px; flex-shrink: 0; text-align: center; line-height: 1; margin-top: 2px; }
+.match-info { flex: 1; }
+.match-game { font-size: 15px; font-weight: 500; color: #fff; line-height: 1.2; }
+.match-sub { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 300; }
+.match-sub strong { color: rgba(245,158,11,0.85); font-weight: 500; }
+.match-time-badge {
+  font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--accent-light);
+  background: var(--accent-glow); border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 7px; flex-shrink: 0; margin-top: 2px; white-space: nowrap;
+}
+
+/* PLATTEGROND */
+.map-wrapper {
+  position: relative; width: 100%; border-radius: 10px;
+  overflow: hidden; border: 1px solid rgba(255,106,0,0.2);
+}
+.map-wrapper img { width: 100%; display: block; border-radius: 10px; }
+.map-caption { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; font-style: italic; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-family: 'Oswald', sans-serif; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; font-weight: 300; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="page-home">
+  <div class="hero">
+    <div class="hero-badge">⚽ Evenement Portaal</div>
+    <h1>Pupillenweekend<br><span>Altius</span></h1>
+    <p>Info voor Bondscoaches — Selecteer uw land</p>
+  </div>
+  <div class="section-label">Kies uw land</div>
+  <div class="countries-grid" id="countries-grid"></div>
+</div>
+
+<!-- DETAIL -->
+<div id="page-detail">
+  <button class="back-btn" onclick="goHome()">← Terug naar overzicht</button>
+  <div class="detail-header">
+    <div class="detail-flag" id="d-flag"></div>
+    <div class="detail-title">
+      <h2 id="d-name"></h2>
+      <p>Bondscoach Dashboard — Pupillenweekend Altius</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title gold">Bondscoaches</div>
+    <div class="coaches-grid">
+      <div class="coach-chip">
+        <div class="coach-icon">🧑‍💼</div>
+        <div><div class="coach-label">Bondscoach 1</div><div class="coach-name">Nog in te delen</div></div>
+      </div>
+      <div class="coach-chip">
+        <div class="coach-icon">🧑‍💼</div>
+        <div><div class="coach-label">Bondscoach 2</div><div class="coach-name">Nog in te delen</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Deelnemers</div>
+    <div class="players-grid" id="d-players"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('vrijdag')">🎮 Spelletjes<br><span style="font-size:9px;opacity:.7">Vrijdag</span></button>
+    <button class="tab-btn" onclick="switchTab('zaterdag')">⚽ Voetbaltoernooi<br><span style="font-size:9px;opacity:.7">Zaterdag</span></button>
+  </div>
+
+  <!-- Tab: Vrijdag -->
+  <div class="tab-content active" id="tab-vrijdag">
+
+    <div class="panel">
+      <div class="panel-title">Algemeen Tijdschema — Vrijdag</div>
+      <div class="time-grid" id="time-grid"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">📍 Plattegrond Spelletjes — Vrijdag</div>
+      <div class="map-wrapper">
+        <img src="Plattegrond.jpg" alt="Plattegrond Sportpark Berestein">
+      </div>
+      <p class="map-caption">Sportpark Berestein — Voetbalvereniging Altius</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Pupillenweekend Spelletjes — Vrijdag</div>
+      <div id="d-schedule-vrijdag"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Zaterdag -->
+  <div class="tab-content" id="tab-zaterdag">
+    <div class="panel">
+      <div class="panel-title green-c">Pupillenweekend Voetbaltoernooi — Zaterdag</div>
+      <div class="empty-state">
+        <div class="empty-icon">🏗️</div>
+        <div class="empty-title">Schema nog niet beschikbaar</div>
+        <div class="empty-sub">Het voetbaltoernooi schema wordt later toegevoegd.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAMES = [
+  "Penalty schieten","Dobbelsteen schieten","Stormbaan",
+  "Hoe hard schiet ik?","Voetbaldart","Lopen op een bal",
+  "Levend Tafelvoetbal","IPS Back to Base"
+];
+const TEAMS = [
+  ['Japan','🇯🇵'],['Nederland','🇳🇱'],['België','🇧🇪'],['Duitsland','🇩🇪'],
+  ['Italië','🇮🇹'],['Verenigde Staten','🇺🇸'],['Mexico','🇲🇽'],['Argentinië','🇦🇷'],
+  ['Marokko','🇲🇦'],['Chili','🇨🇱'],['Brazilië','🇧🇷'],['Frankrijk','🇫🇷'],
+  ['Spanje','🇪🇸'],['Portugal','🇵🇹'],['Zweden','🇸🇪'],['Noorwegen','🇳🇴']
+];
+
+function buildTimetable() {
+  const START = 19 * 60;
+  const ROUND = 15;
+  const PAUSE = 20;
+  const entries = [];
+  let cursor = START;
+  for (let r = 1; r <= 8; r++) {
+    const from = fmtTime(cursor);
+    const to   = fmtTime(cursor + ROUND);
+    entries.push({ type: 'round', round: r, from, to, label: `Ronde ${r}` });
+    cursor += ROUND;
+    if (r === 3 || r === 6) {
+      entries.push({ type: 'pause', from: fmtTime(cursor), to: fmtTime(cursor + PAUSE), label: '☕ Pauze' });
+      cursor += PAUSE;
+    }
+  }
+  return entries;
+}
+
+function fmtTime(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+const TIMETABLE = buildTimetable();
+const roundTimes = {};
+TIMETABLE.filter(e => e.type === 'round').forEach(e => { roundTimes[e.round] = `${e.from}–${e.to}`; });
+
+function renderTimetable() {
+  const g = document.getElementById('time-grid');
+  g.innerHTML = '';
+  TIMETABLE.forEach(e => {
+    const isPause = e.type === 'pause';
+    g.innerHTML += `
+      <div class="time-row ${isPause ? 'is-pause' : ''}">
+        <div class="time-dot"></div>
+        <div class="time-badge">${e.from} – ${e.to}</div>
+        <div class="time-label">${e.label}</div>
+      </div>`;
+  });
+}
+
+function generateSchedule() {
+  const ids = TEAMS.map((_, i) => i);
+  const fixed = ids[0];
+  let rot = ids.slice(1);
+  const rounds = [];
+  for (let r = 0; r < 8; r++) {
+    const order = [fixed, ...rot];
+    const matches = [];
+    for (let i = 0; i < 8; i++) {
+      matches.push({ teamA: order[i], teamB: order[15 - i], game: GAMES[i] });
+    }
+    rounds.push({ round: r + 1, matches });
+    rot.unshift(rot.pop());
+  }
+  return rounds;
+}
+
+const schedule = generateSchedule();
+
+function getMatchesForTeam(teamIdx) {
+  const result = [];
+  schedule.forEach(r => {
+    r.matches.forEach(m => {
+      if (m.teamA === teamIdx || m.teamB === teamIdx) {
+        result.push({ round: r.round, game: m.game, opponent: m.teamA === teamIdx ? m.teamB : m.teamA });
+      }
+    });
+  });
+  return result;
+}
+
+const grid = document.getElementById('countries-grid');
+TEAMS.forEach(([name, flag], i) => {
+  const btn = document.createElement('button');
+  btn.className = 'country-btn';
+  btn.innerHTML = `<span class="country-flag">${flag}</span><span class="country-name">${name}</span>`;
+  btn.onclick = () => showTeam(i);
+  grid.appendChild(btn);
+});
+
+function showTeam(idx) {
+  const [name, flag] = TEAMS[idx];
+  document.getElementById('d-flag').textContent = flag;
+  document.getElementById('d-name').textContent = name;
+
+  const pg = document.getElementById('d-players');
+  pg.innerHTML = '';
+  for (let i = 1; i <= 12; i++) {
+    pg.innerHTML += `<div class="player-chip"><span class="player-num">${i}</span>Speler ${i}</div>`;
+  }
+
+  renderTimetable();
+
+  const sc = document.getElementById('d-schedule-vrijdag');
+  sc.innerHTML = '';
+  getMatchesForTeam(idx).forEach((m, i) => {
+    const opp = TEAMS[m.opponent];
+    const time = roundTimes[m.round] || '';
+    sc.innerHTML += `
+      <div class="match-row">
+        <div class="match-num">${i + 1}</div>
+        <div class="match-info">
+          <div class="match-game">${m.game}</div>
+          <div class="match-sub">Tegen <strong>${opp[1]} ${opp[0]}</strong> &nbsp;·&nbsp; Ronde ${m.round}</div>
+        </div>
+        <div class="match-time-badge">${time}</div>
+      </div>`;
+  });
+
+  switchTab('vrijdag');
+  document.getElementById('page-home').style.display = 'none';
+  document.getElementById('page-detail').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab === 'vrijdag' && i === 0) || (tab === 'zaterdag' && i === 1));
+  });
+  document.getElementById('tab-vrijdag').classList.toggle('active', tab === 'vrijdag');
+  document.getElementById('tab-zaterdag').classList.toggle('active', tab === 'zaterdag');
+}
+
+function goHome() {
+  document.getElementById('page-detail').style.display = 'none';
+  document.getElementById('page-home').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
