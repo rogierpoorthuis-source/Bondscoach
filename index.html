@@ -362,9 +362,8 @@ body.org-active .org-fab { background: var(--accent); border-color: var(--accent
 
   <div id="coachContent" style="display:none">
     <div class="coach-tabs">
-      <button class="coach-tab active" id="ctab-spelers" onclick="coachSetTab('spelers')">Spelers</button>
-      <button class="coach-tab" id="ctab-vrijdag" onclick="coachSetTab('vrijdag')">Vrijdag</button>
-      <button class="coach-tab" id="ctab-zaterdag" onclick="coachSetTab('zaterdag')">Zaterdag</button>
+      <button class="coach-tab active" id="ctab-landen" onclick="coachSetTab('landen')">Landen</button>
+      <button class="coach-tab" id="ctab-alle" onclick="coachSetTab('alle')">Alle wedstrijden</button>
     </div>
     <div id="coachBody"></div>
     <button class="proj-entry" style="margin-top:22px" onclick="coachLogout()">Uitloggen</button>
@@ -579,7 +578,7 @@ function cloudKeySat(p,i){return 'zat'+p+'_'+i;}
 function cloudKeyKo(id){return 'ko_'+id;}
 
 /* ── Coach UI (alleen lezen) ── */
-let coachLoggedIn=false, coachTab='spelers', rosters=null, coachSelectedTeam=null, orgUnlocked=false;
+let coachLoggedIn=false, coachTab='landen', rosters=null, coachSelectedTeam=null, orgUnlocked=false;
 window.onCoachAuth=function(loggedIn){ coachLoggedIn=loggedIn; updateCoachView(); };
 function coachLogin(){ const pw=document.getElementById('coachPw').value; const err=document.getElementById('coachErr'); err.classList.remove('show');
   if(!window.CoachCloud||!window.CoachCloud.login){err.textContent='Cloud niet beschikbaar - staat de app online?';err.classList.add('show');return;}
@@ -590,9 +589,9 @@ function updateCoachView(){ const lb=document.getElementById('coachLogin'),ct=do
     if(rosters===null&&window.CoachCloud){ window.CoachCloud.fetchRosters().then(d=>{rosters=d||{};renderCoachTab();}).catch(()=>{rosters={};renderCoachTab();}); } else renderCoachTab();
   } else { lb.style.display='block'; ct.style.display='none'; const pw=document.getElementById('coachPw'); if(pw)pw.value=''; } }
 function coachSetTab(t){ coachTab=t; renderCoachTab(); }
-function renderCoachTab(){ ['spelers','vrijdag','zaterdag'].forEach(t=>{const b=document.getElementById('ctab-'+t);if(b)b.classList.toggle('active',t===coachTab);});
+function renderCoachTab(){ ['landen','alle'].forEach(t=>{const b=document.getElementById('ctab-'+t);if(b)b.classList.toggle('active',t===coachTab);});
   const body=document.getElementById('coachBody'); if(!body)return;
-  body.innerHTML = coachTab==='spelers'?coachSpelersHTML():coachTab==='vrijdag'?coachVrijdagHTML():coachZaterdagHTML(); }
+  body.innerHTML = coachTab==='landen'?coachSpelersHTML():coachAllMatchesHTML(); }
 
 function playersMap(){ if(!rosters) return {}; return rosters.players ? rosters.players : (rosters.coaches ? {} : rosters); }
 function coachesMap(){ if(!rosters) return {}; return rosters.coaches || {}; }
@@ -633,6 +632,7 @@ function coachSpelersHTML(){
       h+='</ol>';
     } else { h+='<p class="rules-text">Nog geen spelers voor dit land.</p>'; }
     h+='</div>';
+    h+=countryMatchesHTML(t);
     return h;
   }
 
@@ -654,6 +654,30 @@ function coachSpelersHTML(){
   h+='</div>';
   if(!orgUnlocked) h+='<button class="proj-entry" style="margin-top:18px" onclick="coachOrgUnlock()">🔧 Organisatie</button>';
   return h;
+}
+function coachMatchRow(left,right,score,tag,done){
+  return '<div class="result-row"><div class="result-team">'+left+'</div><div class="result-score '+(done?'':'pending')+'">'+score+'</div><div class="result-team right">'+right+'</div><div class="result-game-tag">'+tag+'</div></div>';
+}
+function countryMatchesHTML(t){
+  let fri='';
+  state.rounds.forEach(r=>r.matches.forEach(m=>{ const a=player(m.a),b=player(m.b);
+    if(canonTeam(a.name)===t||canonTeam(b.name)===t){ const done=m.sa!==null&&m.sb!==null; const sc=done?(m.sa+' – '+m.sb):'vs';
+      fri+=coachMatchRow(a.flag+' '+a.name, b.flag+' '+b.name, sc, GAMES[m.gameIdx]+' · R'+r.round+' · '+r.time, done); } }));
+  let zat='';
+  ['A','B'].forEach(p=>satMatches[p].forEach(m=>{ if(canonTeam(m.a)===t||canonTeam(m.b)===t){ const done=m.sa!==null&&m.sb!==null; const sc=done?(m.sa+' – '+m.sb):'vs';
+      zat+=coachMatchRow((SAT_FLAGS[m.a]||'')+' '+m.a, (SAT_FLAGS[m.b]||'')+' '+m.b, sc, 'Poule '+p+' · '+m.tijd+' · veld '+m.veld, done); } }));
+  let ko='';
+  koMatches.forEach(k=>{ const r=k.resolve(); if((r[0]&&canonTeam(r[0])===t)||(r[1]&&canonTeam(r[1])===t)){ const done=k.sa!==null&&k.sb!==null; const sc=done?(k.sa+' – '+k.sb):'vs';
+      ko+=coachMatchRow(koTeamLabel(k,0), koTeamLabel(k,1), sc, k.label+' · '+k.tijd+' · veld '+k.veld, done); } });
+  let h='';
+  if(fri) h+='<div class="panel"><div class="panel-title">Vrijdag — spelletjes</div>'+fri+'</div>';
+  if(zat||ko) h+='<div class="panel"><div class="panel-title gold">Zaterdag — voetbal</div>'+zat+ko+'</div>';
+  if(!fri&&!zat&&!ko) h='<div class="panel"><div class="rules-placeholder"><div class="rules-placeholder-sub">Geen wedstrijden gevonden voor dit land.</div></div></div>';
+  return h;
+}
+function coachAllMatchesHTML(){
+  return '<div class="results-round-header" style="margin-bottom:10px">⚽ Vrijdag — spelletjesprogramma</div>'+coachVrijdagHTML()
+       +'<div class="results-round-header" style="margin:22px 0 12px">🏆 Zaterdag — voetbaltoernooi</div>'+coachZaterdagHTML();
 }
 function coachVrijdagHTML(){ let h='';
   state.rounds.forEach(r=>{ h+='<div class="results-round"><div class="results-round-header">Ronde '+r.round+' <span class="r-time">'+r.time+'</span></div>';
