@@ -579,7 +579,7 @@ function cloudKeySat(p,i){return 'zat'+p+'_'+i;}
 function cloudKeyKo(id){return 'ko_'+id;}
 
 /* ── Coach UI (alleen lezen) ── */
-let coachLoggedIn=false, coachTab='spelers', rosters=null;
+let coachLoggedIn=false, coachTab='spelers', rosters=null, coachSelectedTeam=null, orgUnlocked=false;
 window.onCoachAuth=function(loggedIn){ coachLoggedIn=loggedIn; updateCoachView(); };
 function coachLogin(){ const pw=document.getElementById('coachPw').value; const err=document.getElementById('coachErr'); err.classList.remove('show');
   if(!window.CoachCloud||!window.CoachCloud.login){err.textContent='Cloud niet beschikbaar - staat de app online?';err.classList.add('show');return;}
@@ -594,19 +594,66 @@ function renderCoachTab(){ ['spelers','vrijdag','zaterdag'].forEach(t=>{const b=
   const body=document.getElementById('coachBody'); if(!body)return;
   body.innerHTML = coachTab==='spelers'?coachSpelersHTML():coachTab==='vrijdag'?coachVrijdagHTML():coachZaterdagHTML(); }
 
+function playersMap(){ if(!rosters) return {}; return rosters.players ? rosters.players : (rosters.coaches ? {} : rosters); }
+function coachesMap(){ if(!rosters) return {}; return rosters.coaches || {}; }
+
+function coachOpenTeam(t){ coachSelectedTeam=t; renderCoachTab(); window.scrollTo(0,0); }
+function coachBackToGrid(){ coachSelectedTeam=null; renderCoachTab(); window.scrollTo(0,0); }
+function coachOrgUnlock(){
+  const pin=prompt('Pincode organisatie:');
+  if(pin===null) return;
+  if(pin==='1931'){ orgUnlocked=true; renderCoachTab(); } else { alert('Onjuiste pincode.'); }
+}
+
 function coachSpelersHTML(){
-  let h='<button class="proj-entry" style="margin-top:0;margin-bottom:16px" onclick="coachImportClick()">⬆️ Spelers importeren uit Excel</button>'
-       +'<input id="coachFile" type="file" accept=".xlsx,.xls" style="display:none" onchange="coachFileChosen(event)">';
-  if(!rosters||Object.keys(rosters).length===0){
-    h+='<div class="rules-placeholder"><div class="rules-placeholder-icon">👥</div><div class="rules-placeholder-title">Nog geen spelers</div><div class="rules-placeholder-sub">Importeer een Excel met kolommen <b>Team</b> en <b>Speler</b> (optioneel <b>Categorie</b>).</div></div>';
+  const pm=playersMap(), cm=coachesMap();
+  const teams=Object.keys(pm).length?Object.keys(pm):Object.keys(cm);
+  let h='';
+  // Organisatie-import (verborgen achter pincode 1931)
+  if(orgUnlocked){
+    h+='<button class="proj-entry" style="margin-top:0;margin-bottom:16px" onclick="coachImportClick()">⬆️ Importeren uit Excel (spelers + bondscoaches)</button>'
+      +'<input id="coachFile" type="file" accept=".xlsx,.xls" style="display:none" onchange="coachFileChosen(event)">';
+  }
+
+  // Detailweergave van één land
+  if(coachSelectedTeam){
+    const t=coachSelectedTeam;
+    const players=pm[t]||[], coaches=cm[t]||[];
+    h+='<button class="back-btn" style="margin-bottom:18px" onclick="coachBackToGrid()">← Alle landen</button>';
+    h+='<div class="game-page-header"><div class="game-page-icon">'+(SAT_FLAGS[t]||'🏳️')+'</div><div class="game-page-title"><h2>'+t+'</h2><p>'+players.length+' spelers · '+coaches.length+' bondscoaches</p></div></div>';
+    if(coaches.length){
+      h+='<div class="panel"><div class="panel-title gold">Bondscoaches</div><ol class="roster-list">';
+      coaches.forEach(c=>{ const naam=(c&&(c.naam||c.name))||c; h+='<li>'+naam+'</li>'; });
+      h+='</ol></div>';
+    }
+    h+='<div class="panel"><div class="panel-title">Spelers</div>';
+    if(players.length){
+      h+='<ol class="roster-list">';
+      players.forEach(p=>{ const naam=(p&&(p.naam||p.name))||p; const cat=(p&&p.cat)?'<span class="roster-cat">'+p.cat+'</span>':''; h+='<li>'+naam+cat+'</li>'; });
+      h+='</ol>';
+    } else { h+='<p class="rules-text">Nog geen spelers voor dit land.</p>'; }
+    h+='</div>';
     return h;
   }
-  h+='<div class="roster-grid">';
-  Object.keys(rosters).sort().forEach(team=>{ const players=rosters[team]||[];
-    h+='<div class="roster-card"><div class="roster-team">'+(SAT_FLAGS[team]||'')+' '+team+' <span class="roster-count">'+players.length+'</span></div><ol class="roster-list">';
-    players.forEach(p=>{ const naam=(p&&(p.naam||p.name))||p; const cat=(p&&p.cat)?'<span class="roster-cat">'+p.cat+'</span>':''; h+='<li>'+naam+cat+'</li>'; });
-    h+='</ol></div>'; });
-  h+='</div>'; return h;
+
+  // Tegelraster
+  if(teams.length===0){
+    h+='<div class="rules-placeholder"><div class="rules-placeholder-icon">👥</div><div class="rules-placeholder-title">Nog geen spelers</div><div class="rules-placeholder-sub">De organisatie kan de spelers en bondscoaches importeren via de knop onderaan.</div></div>';
+    h+='<button class="proj-entry" style="margin-top:18px" onclick="coachOrgUnlock()">🔧 Organisatie</button>';
+    return h;
+  }
+  h+='<div class="games-grid">';
+  teams.sort().forEach(t=>{
+    const np=(pm[t]||[]).length, nc=(cm[t]||[]).length;
+    h+='<button class="game-btn" onclick="coachOpenTeam(\''+t.replace(/\x27/g,"\\\x27")+'\')">'
+      +'<div class="game-icon">'+(SAT_FLAGS[t]||'🏳️')+'</div>'
+      +'<div class="game-btn-name">'+t+'</div>'
+      +'<div class="game-progress">'+np+' spelers'+(nc?(' · '+nc+' coach'+(nc>1?'es':'')):'')+'</div>'
+      +'</button>';
+  });
+  h+='</div>';
+  if(!orgUnlocked) h+='<button class="proj-entry" style="margin-top:18px" onclick="coachOrgUnlock()">🔧 Organisatie</button>';
+  return h;
 }
 function coachVrijdagHTML(){ let h='';
   state.rounds.forEach(r=>{ h+='<div class="results-round"><div class="results-round-header">Ronde '+r.round+' <span class="r-time">'+r.time+'</span></div>';
@@ -629,18 +676,51 @@ function coachZaterdagHTML(){ let h='<div class="standings-grid">'+standingsTabl
   return h; }
 
 function coachImportClick(){ document.getElementById('coachFile').click(); }
+function canonTeam(raw){
+  const s=String(raw||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+  const map={ spanje:'Spanje',portugal:'Portugal',marokko:'Marokko',mexico:'Mexico',
+    saudiarabie:'Saoedi Arabië',saoediarabie:'Saoedi Arabië',saoudiarabie:'Saoedi Arabië',saoedie:'Saoedi Arabië',
+    brazilie:'Brazilië',brazil:'Brazilië',zweden:'Zweden',australie:'Australië',japan:'Japan',
+    frankrijk:'Frankrijk',curacao:'Curaçao',argentinie:'Argentinië',
+    vs:'Verenigde Staten',verenigdestaten:'Verenigde Staten',usa:'Verenigde Staten',amerika:'Verenigde Staten',
+    duitsland:'Duitsland',engeland:'Engeland',nederland:'Nederland' };
+  return map[s] || String(raw||'').trim();
+}
 function coachFileChosen(ev){ const file=ev.target.files[0]; if(!file)return;
   if(typeof XLSX==='undefined'){ alert('Excel-bibliotheek nog niet geladen - probeer het zo nog eens.'); return; }
+  const low=k=>String(k).toLowerCase().replace(/[^a-z]/g,'');
   const reader=new FileReader();
   reader.onload=(e)=>{ try{
-    const wb=XLSX.read(e.target.result,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws,{defval:''}); const out={};
-    rows.forEach(r=>{ const team=String(r.Team||r.team||r.Land||r.land||'').trim();
-      const naam=String(r.Speler||r.speler||r.Naam||r.naam||r.Player||r.player||'').trim();
-      const cat=String(r.Categorie||r.categorie||r.Cat||r.cat||r.Leeftijd||r.leeftijd||'').trim();
-      if(!team||!naam)return; (out[team]=out[team]||[]).push(cat?{naam,cat}:{naam}); });
-    if(Object.keys(out).length===0){ alert('Geen geldige rijen gevonden. Verwacht kolommen: Team, Speler (optioneel Categorie).'); return; }
-    window.CoachCloud.saveRosters(out).then(()=>{ rosters=out; renderCoachTab(); alert('Geimporteerd: '+Object.keys(out).length+' teams.'); })
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    // ── Tabblad 1: spelers ──
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''}); const players={};
+    if(!rows.length){ alert('Het eerste tabblad (spelers) lijkt leeg.'); return; }
+    const keys=Object.keys(rows[0]);
+    const teamKey=keys.find(k=>['team','land'].includes(low(k)));
+    const catKey =keys.find(k=>['categorie','cat','leeftijd'].includes(low(k)));
+    let nameKey  =keys.find(k=>['speler','naam','player','voornaam','naamspeler','spelernaam','name'].includes(low(k)));
+    if(!nameKey) nameKey=keys.find(k=>k!==teamKey&&k!==catKey);
+    if(!teamKey||!nameKey){ alert('Kon de kolommen op tabblad 1 niet herkennen. Zorg voor een kolom Team en een kolom met spelersnamen.'); return; }
+    rows.forEach(r=>{ const team=canonTeam(r[teamKey]); const naam=String(r[nameKey]||'').trim(); const cat=catKey?String(r[catKey]||'').trim():'';
+      if(!team||!naam)return; (players[team]=players[team]||[]).push(cat?{naam,cat}:{naam}); });
+    if(Object.keys(players).length===0){ alert('Geen geldige spelers gevonden op tabblad 1.'); return; }
+    // ── Tabblad 2: bondscoaches (kol 1 = land, kol 2 = naam) ──
+    const coaches={};
+    if(wb.SheetNames[1]){
+      const ws2=wb.Sheets[wb.SheetNames[1]];
+      const arr=XLSX.utils.sheet_to_json(ws2,{header:1,defval:''});
+      arr.forEach((row,idx)=>{
+        const land=String(row[0]||'').trim(), naam=String(row[1]||'').trim();
+        if(!land||!naam) return;
+        if(idx===0 && (low(land)==='land'||low(land)==='team'||low(naam)==='naam'||low(naam)==='coach'||low(naam)==='bondscoach')) return; // koprij overslaan
+        const team=canonTeam(land);
+        (coaches[team]=coaches[team]||[]).push(naam);
+      });
+    }
+    const out={ players, coaches };
+    window.CoachCloud.saveRosters(out).then(()=>{ rosters=out; coachSelectedTeam=null; renderCoachTab();
+      alert('Geimporteerd: '+Object.keys(players).length+' landen, '+Object.keys(coaches).length+' met bondscoaches.'); })
       .catch(err=>{ alert('Opslaan mislukt. Ben je ingelogd en kloppen de Firestore-regels? '+err); });
   }catch(err){ alert('Kon het Excel-bestand niet lezen: '+err); } };
   reader.readAsArrayBuffer(file); ev.target.value=''; }
