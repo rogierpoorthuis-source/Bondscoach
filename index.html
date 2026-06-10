@@ -122,6 +122,13 @@ body::before {
 .result-score { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent-light); min-width: 52px; text-align: center; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 4px 6px; }
 .result-score.pending { color: var(--muted); font-size: 12px; font-weight: 400; }
 .result-game-tag { font-size: 10px; color: var(--muted); white-space: nowrap; background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 3px; padding: 2px 6px; }
+.cmatch { background: var(--surface2); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 11px; margin-bottom: 6px; }
+.cmatch-tag { font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+.cmatch-teams { display: flex; align-items: center; gap: 10px; }
+.cmatch-team { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.25; }
+.cmatch-team.right { text-align: right; }
+.cmatch-score { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700; color: var(--accent-light); min-width: 46px; text-align: center; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 3px 6px; }
+.cmatch-score.pending { color: var(--muted); font-size: 12px; font-weight: 400; }
 .results-pauze { text-align: center; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); padding: 8px; margin-bottom: 14px; border: 1px dashed var(--border-subtle); border-radius: 6px; opacity: 0.7; }
 
 /* MAP */
@@ -640,7 +647,7 @@ function coachSpelersHTML(){
     h+='<div class="panel"><div class="panel-title">Spelers</div>';
     if(players.length){
       h+='<ol class="roster-list">';
-      players.forEach(p=>{ const naam=(p&&(p.naam||p.name))||p; const cat=(p&&p.cat)?'<span class="roster-cat">'+p.cat+'</span>':''; h+='<li>'+naam+cat+'</li>'; });
+      coachSortByCat(players).forEach(p=>{ const naam=(p&&(p.naam||p.name))||p; const cat=(p&&p.cat)?'<span class="roster-cat">'+p.cat+'</span>':''; h+='<li>'+naam+cat+'</li>'; });
       h+='</ol>';
     } else { h+='<p class="rules-text">Nog geen spelers voor dit land.</p>'; }
     h+='</div>';
@@ -667,8 +674,26 @@ function coachSpelersHTML(){
   if(!orgUnlocked) h+='<button class="proj-entry" style="margin-top:18px" onclick="coachOrgUnlock()">🔧 Organisatie</button>';
   return h;
 }
+function coachCatKey(p){
+  const c = String((p&&p.cat)||'').trim();
+  const m = c.match(/(\d+)\s*[-\/.\s]\s*(\d+)/);   // "13-01" -> leeftijd 13, nr 1
+  if(m) return [-parseInt(m[1],10), parseInt(m[2],10)];
+  const m1 = c.match(/(\d+)/);
+  if(m1) return [-parseInt(m1[1],10), 0];
+  return [9999,0];                                  // geen categorie -> achteraan
+}
+function coachSortByCat(arr){
+  return arr.slice().sort((a,b)=>{
+    const ka=coachCatKey(a), kb=coachCatKey(b);
+    return ka[0]-kb[0] || ka[1]-kb[1]
+      || String((a&&(a.naam||a.name))||a).localeCompare(String((b&&(b.naam||b.name))||b),'nl');
+  });
+}
 function coachMatchRow(left,right,score,tag,done){
-  return '<div class="result-row"><div class="result-team">'+left+'</div><div class="result-score '+(done?'':'pending')+'">'+score+'</div><div class="result-team right">'+right+'</div><div class="result-game-tag">'+tag+'</div></div>';
+  return '<div class="cmatch"><div class="cmatch-tag">'+tag+'</div>'
+    +'<div class="cmatch-teams"><div class="cmatch-team">'+left+'</div>'
+    +'<div class="cmatch-score '+(done?'':'pending')+'">'+score+'</div>'
+    +'<div class="cmatch-team right">'+right+'</div></div></div>';
 }
 function countryMatchesHTML(t){
   let fri='';
