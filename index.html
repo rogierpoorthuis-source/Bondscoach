@@ -716,17 +716,29 @@ function coachProgrammaHTML(){
   const row=(t,a)=>'<div style="display:flex;gap:12px;padding:9px 2px;border-bottom:1px solid var(--border-subtle)">'
     +'<div style="min-width:104px;font-family:\'Oswald\',sans-serif;font-weight:600;color:var(--accent)">'+t+'</div>'
     +'<div style="flex:1">'+a+'</div></div>';
-  let h='<div class="results-round-header" style="margin-bottom:12px">📅 Algemeen programma — Vrijdagavond</div>';
-  h+='<div class="panel"><div class="panel-title">⚽ LED Voetbal</div>'
+  const sub=(t)=>'<div style="font-family:\'Oswald\',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);margin:14px 0 4px">'+t+'</div>';
+  let h='<div class="results-round-header" style="margin-bottom:12px">📅 Algemeen programma Pupillenweekend</div>';
+  h+='<div class="panel"><div class="panel-title">🗓️ Vrijdag</div>'
+    + row('17:30','Aankomst')
+    + row('18:30','Opening')
+    + row('19:00','Groepsfoto')
+    + row('19:15','Start spelletjestoernooi')
+    + row('22:15','Einde spelletjes')
+    + sub('⚽ LED Voetbal')
     + row('22:30 – 23:15','Onder 8')
     + row('23:15 – 00:00','Onder 9 &amp; Onder 10')
-    + '</div>';
-  h+='<div class="panel"><div class="panel-title gold">👻 Spokentocht</div>'
+    + sub('👻 Spokentocht')
     + row('23:05','Klaarstaan O11')
     + row('23:15','Klaarstaan O12')
     + row('23:30','Klaarstaan O13')
     + row('23:45','Verhaal / start spokentocht')
     + row('00:30','Eerste teams terug')
+    + '</div>';
+  h+='<div class="panel"><div class="panel-title gold">🗓️ Zaterdag</div>'
+    + row('08:15','Ontbijt')
+    + row('08:45','Warming-up')
+    + row('09:00','Voetbaltoernooi')
+    + row('13:30','Finale')
     + '</div>';
   return h;
 }
